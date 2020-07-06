@@ -1,0 +1,352 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.zetabase";
+option java_outer_classname = "ZetabaseProtocol";
+
+package zbprotocol;
+
+service ZetabaseProvider {
+    rpc VersionInfo(ZbEmpty) returns (VersionDetails) {}
+    rpc ModifySubIdentity(SubIdentityModify) returns (ZbError) {}
+    rpc ListSubIdentities(SimpleRequest) returns (SubIdentitiesList) {}
+    rpc RegisterNewIdentity(NewIdentityRequest) returns (NewIdentityResponse) {}
+    rpc ConfirmNewIdentity(NewIdentityConfirm) returns (ZbError) {}
+    rpc PutData(TablePut) returns (ZbError) {}
+    rpc PutDataMulti(TablePutMulti) returns (ZbError) {}
+    rpc CreateTable(TableCreate) returns (ZbError) {}
+    rpc GetData(TableGet) returns (TableGetResponse) {}
+    rpc QueryData(TableQuery) returns (TableGetResponse) {}
+    rpc CreateUser(NewSubIdentityRequest) returns (NewIdentityResponse) {} // ???
+    rpc SetPermission(PermissionsEntry) returns (ZbError) {} // ???
+    rpc LoginUser(AuthenticateUser) returns (AuthenticateUserResponse) {}
+    rpc ListTables(ListTablesRequest) returns (ListTablesResponse) {}
+    rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {}
+    rpc DeleteObject(DeleteSystemObjectRequest) returns (ZbError) {}
+}
+
+// ENUMERATIONS
+
+enum TableDataFormat {
+    BINARY = 0;
+    PLAIN_TEXT = 1;
+    JSON = 2;
+}
+
+enum PermissionConstraintType {
+    FIELD = 0;
+}
+
+enum FieldConstraintType {
+    EQUALS_VALUE = 0;
+    SET_VALUE = 1;
+}
+
+enum FieldConstraintValueType {
+    CONSTANT = 0;
+    UID = 1;
+    TIMESTAMP = 2;
+    NATURAL_ORDER = 3;
+    RANDOM = 4;
+}
+
+enum PermissionAudienceType {
+    INDIVIDUAL = 0;
+    USER = 1;
+    PUBLIC = 2;
+}
+
+enum PermissionLevel {
+    NONE = 0;
+    READ = 1;
+    APPEND = 2;
+    DELETE = 3;
+    ADMINISTER = 4;
+}
+
+enum CredentialProofType {
+    SIGNATURE = 0;
+    JWT_TOKEN = 1;
+}
+
+enum QueryOperator {
+    EQUALS = 0;
+    GREATER_THAN = 1;
+    LESS_THAN = 2;
+    NOT_EQUALS = 3;
+    GREATER_THAN_EQ = 4;
+    LESS_THAN_EQ = 5;
+    TEXT_SEARCH = 6;
+}
+enum QueryLogicalOperator {
+    LOGICAL_OR = 0;
+    LOGICAL_AND = 1;
+}
+
+enum QueryOrdering {
+    LEXICOGRAPHIC = 0;
+    REAL_NUMBERS = 1;
+    INTEGRAL_NUMBERS = 2;
+    FULL_TEXT = 3;
+}
+
+enum SystemObjectType {
+    SUBUSER = 0;
+    TABLE = 1;
+    KEY = 2;
+}
+
+// UTILITY
+
+message EcdsaSignature {
+    string r = 1;
+    string s = 2;
+}
+
+message ProofOfCredential {
+    CredentialProofType credType = 1;
+    EcdsaSignature signature = 2;
+    string jwtToken = 3;
+}
+
+message ZbEmpty {
+
+}
+
+message ZbError {
+    int64 code = 1;
+    string message = 2;
+}
+
+message VersionDetails {
+    string serverVersion = 1;
+    string clientVersion = 2;
+    string minClientVersion = 3;
+}
+
+// AUTH AND CONSTRAINTS
+
+message FieldConstraint {
+    FieldConstraintType constraintType = 1;
+    string fieldKey = 2;
+    FieldConstraintValueType valueType = 3;
+    string requiredValue = 4;
+}
+
+message PermissionConstraint {
+    PermissionConstraintType constraintType = 1;
+    FieldConstraint fieldConstraint = 2;
+}
+
+message PermissionsEntry {
+    string id = 1;
+    string tableId = 2;
+    PermissionAudienceType audienceType = 3;
+    string audienceId = 4;
+    PermissionLevel level = 5;
+    int64 nonce = 6;
+    ProofOfCredential credential = 7;
+    repeated PermissionConstraint constraints = 8;
+}
+
+message AuthenticateUser {
+    string parentId = 1;
+    string handle = 2;
+    string password = 3;
+    int64 nonce = 4;
+    ProofOfCredential credential = 5;
+}
+
+message AuthenticateUserResponse {
+    string id = 1;
+    string jwtToken = 2;
+}
+
+// IDENTITY MANAGEMENT
+
+message NewSubIdentityRequest {
+    string id = 1;
+    string name = 2;
+    string email = 3;
+    string mobile = 4;
+    string loginPassword = 5;
+    string pubKeyEncoded = 6;
+    string signupCode = 7;
+    string groupId = 8;
+}
+
+message NewIdentityRequest {
+    string name = 1;
+    string email = 2;
+    string mobile = 3;
+    string adminPassword = 4;
+    string pubKeyEncoded = 5;
+}
+
+message SubIdentityModify {
+    string id = 1;
+    string subId = 2;
+    string newName = 3;
+    string newEmail = 4;
+    string newMobile = 5;
+    string newPassword = 6;
+    string newPubKey = 7;
+    int64 nonce = 8;
+    ProofOfCredential credential = 9;
+}
+
+message SubIdentitiesList {
+    repeated NewSubIdentityRequest subIdentities = 1;
+}
+
+message NewIdentityConfirm {
+    string id = 1;
+    string parentId = 2;
+    string verificationCode = 3;
+}
+
+message NewIdentityResponse {
+    string id = 1;
+    ZbError error = 2;
+}
+
+// DATA MANAGEMENT
+
+message TableIndexField {
+    string field = 1;
+    QueryOrdering ordering = 2;
+    string languageCode = 3;
+}
+
+message TableIndexFields {
+    repeated TableIndexField fields = 1;
+}
+
+message SimpleRequest {
+    string id = 1;
+    int64 nonce = 2;
+    ProofOfCredential credential = 3;
+}
+
+message ListTablesRequest {
+    string id = 1;
+    string tableOwnerId = 2;
+    int64 nonce = 3;
+    ProofOfCredential credential = 4;
+}
+
+message ListTablesResponse {
+    ZbError error = 1;
+    repeated TableCreate tableDefinitions = 2;
+}
+
+message ListKeysRequest {
+    string id = 1;
+    string tableId = 2;
+    string tableOwnerId = 3;
+    string pattern = 4;
+    int64 nonce = 5;
+    int64 pageIndex = 6;
+    ProofOfCredential credential = 7;
+}
+
+message ListKeysResponse {
+    ZbError error = 1;
+    PaginationInfo pagination = 2;
+    repeated string keys = 3;
+}
+
+message TableCreate {
+    string id = 1;
+    string tableId = 2;
+    TableDataFormat dataFormat = 3;
+    TableIndexFields indices = 4;
+    int64 nonce = 5;
+    bool allowTokenAuth = 6;
+    ProofOfCredential credential = 7;
+    repeated PermissionsEntry permissions = 8;
+}
+
+message TablePutMulti {
+    string id = 1;
+    string tableOwnerId = 2;
+    string tableId = 3;
+    bool overwrite = 4;
+    int64 nonce = 5;
+    ProofOfCredential credential = 6;
+    repeated DataPair pairs = 7;
+}
+
+message TablePut {
+    string id = 1;
+    string tableOwnerId = 2;
+    string tableId = 3;
+    string key = 4;
+    bytes value = 5;
+    bool overwrite = 6;
+    int64 nonce = 7;
+    ProofOfCredential credential = 8;
+}
+
+message TableGet {
+    string id = 1;
+    string tableOwnerId = 2;
+    string tableId = 3;
+    int64 nonce = 4;
+    ProofOfCredential credential = 5;
+    int64 pageIndex = 6;
+    repeated string keys = 7;
+}
+
+message PaginationInfo {
+    int64 pageIndex = 1;
+    int64 nextPageIndex = 2;
+    bool hasNextPage = 3;
+}
+
+message DataPair {
+    string key = 1;
+    bytes value = 2;
+}
+
+message TableGetResponse {
+    ZbError error = 1;
+    PaginationInfo pagination = 2;
+    repeated DataPair data = 3;
+}
+
+message TableSubqueryComparison {
+    QueryOperator op = 1;
+    string field = 2;
+    string value = 3;
+    QueryOrdering ordering = 4;
+}
+
+message TableQuery {
+    string id = 1;
+    string tableOwnerId = 2;
+    string tableId = 3;
+    TableSubQuery query = 4;
+    int64 nonce = 5;
+    int64 pageIndex = 6;
+    ProofOfCredential credential = 7;
+}
+
+message TableSubQuery {
+    bool isCompound = 1;
+    QueryLogicalOperator compoundOperator = 2;
+    TableSubQuery compoundLeft = 3;
+    TableSubQuery compoundRight = 4;
+    TableSubqueryComparison comparison = 5;
+}
+
+message DeleteSystemObjectRequest {
+    string id = 1;
+    SystemObjectType objectType = 2;
+    string tableOwnerId = 3;
+    string tableId = 4;
+    string objectId = 5;
+    int64 nonce = 6;
+    ProofOfCredential credential = 7;
+}
+
