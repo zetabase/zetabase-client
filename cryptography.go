@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/zetabase/zetabase-client/zbprotocol"
 	"math/big"
-	"github.com/spaolacci/murmur3"
 )
 
 
@@ -75,6 +74,7 @@ func TableCreateSigningBytes(tblId string, perms []*zbprotocol.PermissionsEntry)
 
 // MULTI-PUT EXTRA SIGNING BYTES AND VARIANTS
 
+// Get extra signing bytes for a list of data pairs (PutMulti).
 func MultiPutExtraSigningBytesMd5(pairs []*zbprotocol.DataPair) []byte {
 	hash := md5.New()
 	for _, v := range pairs {
@@ -85,63 +85,64 @@ func MultiPutExtraSigningBytesMd5(pairs []*zbprotocol.DataPair) []byte {
 	return bs
 }
 
-func MultiPutExtraSigningBytesMurmur3(pairs []*zbprotocol.DataPair) []byte {
-	hash := murmur3.New32WithSeed(1234)
-	for _, v := range pairs {
-		hash.Write([]byte(v.GetKey()))
-		hash.Write(v.GetValue())
-	}
-	bs := hash.Sum(nil)
-	return bs
-}
-
-func MultiPutExtraSigningBytesMurmur3Sliding(pairs []*zbprotocol.DataPair) []byte {
-	hash := murmur3.New32WithSeed(1234)
-	stdLen := 64
-	for i, v := range pairs {
-		startIdx := i % len(v.GetValue())
-		endIdx := startIdx + stdLen
-		if endIdx > len(v.GetValue()) {
-			endIdx = len(v.GetValue())
-		}
-		valu := v.GetValue()[startIdx:endIdx]
-		hash.Write([]byte(v.GetKey()))
-		hash.Write(valu)
-	}
-	bs := hash.Sum(nil)
-	return bs
-}
-
-func MultiPutExtraSigningBytes(pairs []*zbprotocol.DataPair) []byte {
-	hash := md5.New()
-	for _, v := range pairs {
-		hash.Write(v.GetValue())
-	}
-	bs := hash.Sum(nil)
-	return bs
-}
-
-func MultiPutExtraSigningBytesAbbrev(pairs []*zbprotocol.DataPair) []byte {
-	//hash := murmur3.New32WithSeed(1234)
-	hash := md5.New()
-	nBytes := 64
-	everyNth := 128
-	//hash := md5.New()
-	for i, v := range pairs {
-		if i % everyNth != 0 {
-			continue
-		}
-		valu := v.GetValue()
-		if len(valu) > nBytes {
-			valu = valu[:nBytes]
-		}
-		hash.Write(valu)
-	}
-	bs := hash.Sum(nil)
-	return bs
-}
+//func MultiPutExtraSigningBytesMurmur3(pairs []*zbprotocol.DataPair) []byte {
+//	hash := murmur3.New32WithSeed(1234)
+//	for _, v := range pairs {
+//		hash.Write([]byte(v.GetKey()))
+//		hash.Write(v.GetValue())
+//	}
+//	bs := hash.Sum(nil)
+//	return bs
+//}
+//
+//func MultiPutExtraSigningBytesMurmur3Sliding(pairs []*zbprotocol.DataPair) []byte {
+//	hash := murmur3.New32WithSeed(1234)
+//	stdLen := 64
+//	for i, v := range pairs {
+//		startIdx := i % len(v.GetValue())
+//		endIdx := startIdx + stdLen
+//		if endIdx > len(v.GetValue()) {
+//			endIdx = len(v.GetValue())
+//		}
+//		valu := v.GetValue()[startIdx:endIdx]
+//		hash.Write([]byte(v.GetKey()))
+//		hash.Write(valu)
+//	}
+//	bs := hash.Sum(nil)
+//	return bs
+//}
+//
+//func MultiPutExtraSigningBytes(pairs []*zbprotocol.DataPair) []byte {
+//	hash := md5.New()
+//	for _, v := range pairs {
+//		hash.Write(v.GetValue())
+//	}
+//	bs := hash.Sum(nil)
+//	return bs
+//}
+//
+//func MultiPutExtraSigningBytesAbbrev(pairs []*zbprotocol.DataPair) []byte {
+//	//hash := murmur3.New32WithSeed(1234)
+//	hash := md5.New()
+//	nBytes := 64
+//	everyNth := 128
+//	//hash := md5.New()
+//	for i, v := range pairs {
+//		if i % everyNth != 0 {
+//			continue
+//		}
+//		valu := v.GetValue()
+//		if len(valu) > nBytes {
+//			valu = valu[:nBytes]
+//		}
+//		hash.Write(valu)
+//	}
+//	bs := hash.Sum(nil)
+//	return bs
+//}
 // -----------------------------------------------
 
+// Get extra signing bytes for a single table put
 func TablePutExtraSigningBytes(key string, valu []byte) []byte {
 	hash := md5.New()
 	hash.Write([]byte(key))

@@ -5,10 +5,10 @@ with a command-line tool for managing data and users.
 Most users will only require the ZetabaseClient class; other exposed functions are
 primarily of use for working at the protocol layer, e.g. for performance fine-tuning.
 
-The client library communicates using a zbprotocol based on gRPC/zbprotocol buffers.
+The client library communicates using a protocol based on gRPC/Protocol Buffers.
 
 This code and the included command-line tool are licensed under the Modified BSD License
-included in the attached LICENSE.txt file.
+included in the attached LICENSE file.
 */
 package zetabase
 
