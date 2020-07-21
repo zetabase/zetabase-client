@@ -1091,10 +1091,13 @@ var cmdManage = &cobra.Command{
 			var keys []string
 			var valus [][]byte
 
+
 			log.Printf("Connected, generating data...\n")
-			for i := 0; i < 10000; i++ {
+			for i := 0; i < 100000; i++ {
 				k := fmt.Sprintf("key/%d", i)
-				v := fmt.Sprintf("{\"num\": %d}", rand.Intn(100))
+				s := randLetterStringRunes(512)
+				num := 2*rand.Intn(100)
+				v := fmt.Sprintf("{\"num\": %d, \"randomstring\":\"%s\"}", num, s)
 				keys = append(keys, k)
 				valus = append(valus, []byte(v))
 			}
@@ -1106,6 +1109,29 @@ var cmdManage = &cobra.Command{
 
 		}  else if task == AdminTaskTestingGround {
 			// nothing
+			uid := "a68d5254-206c-4782-bb10-eb33037e0d4e"
+			rig := zetabase.NewZetabaseClient(uid)
+			rig.SetServerAddr("localhost:9991")
+			rig.SetInsecure()
+			rig.SetIdPassword("jasonpy1", "jasonpy1")
+			err := rig.Connect()
+			if err != nil {
+				panic(err)
+			}
+			ksPgs := rig.ListKeysWithPattern(uid, "simulation6", "data/%")
+			ks, err := ksPgs.KeysAll()
+			if err != nil {
+				panic(err)
+			}
+			Logf("Number of keys: %d", len(ks))
+			m := map[string]bool{}
+			for _, k := range ks {
+				if _, ok := m[k]; ok {
+					Logf("Duplicate! %s", k)
+				}
+				m[k] = true
+			}
+
 		} else {
 			Logf("No such task `%s`", task)
 		}
