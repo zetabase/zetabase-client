@@ -1108,29 +1108,121 @@ var cmdManage = &cobra.Command{
 			}
 
 		}  else if task == AdminTaskTestingGround {
+			uid := "18259baf-b9e7-4cbd-9027-ca6a4dae1af1"
+			handle := "test_user"
+			password := "test_pass"
+
+			testClient := zetabase.NewZetabaseClient(uid)
+			testClient.SetIdPassword(handle, password)
+			testClient.SetServerAddr("api.zetabase.io:443")
+			err := testClient.Connect()
+			if err != nil {
+				panic(err)
+			}
+
+			res := testClient.ListKeys(uid, "testTable")
+			keys, err := res.KeysAll()
+			
+			if err != nil {
+				panic(err)
+			}
+
+			get := zetabase.MakeGetPages(testClient, keys, int64(20000))
+			get.GetAll(uid, "testTable")
+
+			// keys, err = get.KeysAll()
+			// for _, v := range(keys) {
+			// 	print(v)
+			// }
+			
+			// data, err := get.DataAll()
+			// for _, v := range(data) {
+			// 	print(v)
+			// }
+
+			tot := 0
+
+			data, err := get.Data()
+			for range(data) {
+				tot ++
+			}
+
+			get.Next()
+			data, err = get.Data()
+			for range(data) {
+				tot ++
+			}
+
+			get.Next()
+			data, err = get.Data()
+			for range(data) {
+				tot ++
+			}
+
+			get.Next()
+			data, err = get.Data()
+			for range(data) {
+				tot ++
+			}
+
+			get.Next()
+			data, err = get.Data()
+			for range(data) {
+				tot ++
+			}
+
+			get.Next()
+			data, err = get.Data()
+			for range(data) {
+				tot ++
+			}
+
+			print(tot)
+
+			// keys, err = get.Keys()
+			// for _, v := range(keys) {
+			// 	print(v)
+			// }
+
+
+
+
+
+
+			// resData := testClient.Get(uid, "testTable", keys)
+			// data, err := resData.DataAll()
+			// if err != nil {
+			// 	panic(err)
+			// }
+
+			// for _, v := range(data) {
+			// 	print(v)
+			// }
+			
+
 			// nothing
-			uid := "a68d5254-206c-4782-bb10-eb33037e0d4e"
-			rig := zetabase.NewZetabaseClient(uid)
-			rig.SetServerAddr("localhost:9991")
-			rig.SetInsecure()
-			rig.SetIdPassword("jasonpy1", "jasonpy1")
-			err := rig.Connect()
-			if err != nil {
-				panic(err)
-			}
-			ksPgs := rig.ListKeysWithPattern(uid, "simulation6", "data/%")
-			ks, err := ksPgs.KeysAll()
-			if err != nil {
-				panic(err)
-			}
-			Logf("Number of keys: %d", len(ks))
-			m := map[string]bool{}
-			for _, k := range ks {
-				if _, ok := m[k]; ok {
-					Logf("Duplicate! %s", k)
-				}
-				m[k] = true
-			}
+			// uid := "a68d5254-206c-4782-bb10-eb33037e0d4e"
+			// rig := zetabase.NewZetabaseClient(uid)
+			// rig.SetServerAddr("localhost:9991")
+			// rig.SetInsecure()
+			// rig.SetIdPassword("jasonpy1", "jasonpy1")
+			// err := rig.Connect()
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// ksPgs := rig.ListKeysWithPattern(uid, "simulation6", "data/%")
+			// ks, err := ksPgs.KeysAll()
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// Logf("Number of keys: %d", len(ks))
+			// m := map[string]bool{}
+			// for _, k := range ks {
+			// 	if _, ok := m[k]; ok {
+			// 		Logf("Duplicate! %s", k)
+			// 	}
+			// 	m[k] = true
+			// }
 
 		} else {
 			Logf("No such task `%s`", task)
