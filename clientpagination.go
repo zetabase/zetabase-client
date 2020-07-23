@@ -167,6 +167,22 @@ func (p *getPages) Keys() ([]string, error) {
 	return curPag.Keys()
 }
 
+func (p *getPages) GetFirstNPages(numPages int) (map[string][]byte, error) {
+	dataAll := make(map[string][]byte)
+
+	for p.KeyIndex < numPages {
+		var curData map[string][]byte
+
+		curPag := p.getCurPag()
+		curData, _ = curPag.DataAll()
+
+		addData(dataAll, curData)
+
+		p.KeyIndex ++ 
+	}
+	return dataAll, nil
+}
+
 func (p *getPages) Next() {
 	if p.KeyIndex < len(p.KeyGroups) - 1 {
 		p.KeyIndex ++ 

@@ -1129,7 +1129,12 @@ var cmdManage = &cobra.Command{
 
 			get := zetabase.MakeGetPages(testClient, keys, int64(20000), uid, "testTable")
 
-			data, err := get.DataAll()
+			// data, err := get.DataAll()
+			// for _, v := range(data) {
+			// 	print(v)
+			// }
+
+			data, err := get.GetFirstNPages(3)
 			for _, v := range(data) {
 				print(v)
 			}
