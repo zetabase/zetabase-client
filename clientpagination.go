@@ -99,11 +99,10 @@ func MakeGetPages(client *ZetabaseClient, dataKeys []string, maxItemSize int64, 
 
 func breakKeys(keys []string, itemsPerPage int64) ([][]string){
 	var keyGroups [][]string 
-	var lenKeys int64
 	var i int64
 	var kg []string
 
-	lenKeys = int64(len(keys))
+	lenKeys := int64(len(keys))
 
 	for i=0; i<lenKeys; i++ {
 		kg = append(kg, keys[i])
