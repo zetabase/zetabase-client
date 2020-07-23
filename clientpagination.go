@@ -13,12 +13,12 @@ type putPages struct {
 }
 
 type getPages struct {
-	DataKeys     []string 
-	MaxItemSize  int64 
-	MaxPageSize  int64
-	Client       *ZetabaseClient 
-	PagHandlers  []*PaginationHandler 
-	PagIndex     int
+	KeyGroups     [][]string 
+	Client        *ZetabaseClient 
+	ItemsPerPage  int64
+	KeyIndex      int
+	TableOwnerId  string 
+	TableId       string 
 }
 
 func makePutPages(client *ZetabaseClient, keys []string, valus [][]byte, maxBytes uint64) *putPages {
@@ -82,28 +82,31 @@ func (p *putPages) pagify() ([][]string, [][][]byte, error) {
 	return pages, pageValues, nil
 }
 
+func MakeGetPages(client *ZetabaseClient, dataKeys []string, maxItemSize int64, tableOwnerId, tableId string) *getPages {
+	maxPageSize := int64(2000000)
+	itemsPerPage := maxPageSize/maxItemSize
+	kgs := breakKeys(dataKeys, itemsPerPage)
 
-func MakeGetPages(client *ZetabaseClient, dataKeys []string, maxItemSize int64) *getPages {
 	return &getPages{
-		DataKeys:    dataKeys,
-		MaxItemSize: maxItemSize,
-		Client:      client,
-		MaxPageSize: int64(2000000),
-		PagIndex:    0,
+		KeyGroups:    kgs,
+		Client:       client,
+		ItemsPerPage: itemsPerPage,
+		KeyIndex:     0,
+		TableOwnerId: tableOwnerId,
+		TableId:      tableId,
 	}
 }
 
-func (p *getPages) breakKeys() ([][]string){
+func breakKeys(keys []string, itemsPerPage int64) ([][]string){
 	var keyGroups [][]string 
-	var itemsPerPage int64
-	itemsPerPage = p.MaxPageSize/p.MaxItemSize
-
 	var lenKeys int64
-	lenKeys = int64(len(p.DataKeys))
 	var i int64
 	var kg []string
+
+	lenKeys = int64(len(keys))
+
 	for i=0; i<lenKeys; i++ {
-		kg = append(kg, p.DataKeys[i])
+		kg = append(kg, keys[i])
 		if int64(len(kg)) == itemsPerPage {
 			keyGroups = append(keyGroups, kg)
 			kg = []string{}
@@ -115,63 +118,58 @@ func (p *getPages) breakKeys() ([][]string){
 	return keyGroups
 }
 
-func (p *getPages) GetAll(tableOwnerId, tableId string) {
-	keyGroups := p.breakKeys()
-	
-	for i:=0; i<len(keyGroups); i++ {
-		kg := keyGroups[i]
-		pag := p.Client.Get(tableOwnerId, tableId, kg)
-		p.PagHandlers = append(p.PagHandlers, pag)
+func addData(data map[string][]byte, curData map[string][]byte) {
+	for k, v := range(curData) {
+		data[k] = v
 	}
 }
 
+func (p *getPages) getCurPag() *PaginationHandler{
+	pag := p.Client.Get(p.TableOwnerId, p.TableId, p.KeyGroups[p.KeyIndex])
+	return pag 
+}
+
 func (p *getPages) DataAll() (map[string][]byte, error) {
-	data := make(map[string][]byte)
-	for i:=0; i<len(p.PagHandlers); i++ {
+	dataAll := make(map[string][]byte)
+
+	for p.KeyIndex < len(p.KeyGroups) {
 		var curData map[string][]byte
 
-		curPag := p.PagHandlers[i]
+		curPag := p.getCurPag()
 		curData, _ = curPag.DataAll()
 
-		for k, v := range(curData) {
-			data[k] = v
-		}
+		addData(dataAll, curData)
+
+		p.KeyIndex ++ 
 	}
-	return data, nil
+	return dataAll, nil
 }
 
 func (p *getPages) KeysAll() ([]string, error) {
 	var keys []string 
-	for i:=0; i<len(p.PagHandlers); i++ {
-		curPag := p.PagHandlers[i]
+
+	for p.KeyIndex < len(p.KeyGroups) {
+		curPag := p.getCurPag()
 		pagKeys, _ := curPag.KeysAll()
 
 		keys = append(keys, pagKeys...)
+		p.KeyIndex ++
 	}
 	return keys, nil
 }
 
 func (p *getPages) Data() (map[string][]byte, error) {
-	curPag := p.PagHandlers[p.PagIndex]
+	curPag := p.getCurPag()
 	return curPag.Data()
 }
 
 func (p *getPages) Keys() ([]string, error) {
-	var keys []string 
-	curPag := p.PagHandlers[p.PagIndex]
-	pagData, _ := curPag.Data()
-	for k := range(pagData) {
-		keys = append(keys, k)
-	}
-	return keys, nil
+	curPag := p.getCurPag()
+	return curPag.Keys()
 }
 
 func (p *getPages) Next() {
-	curPag := p.PagHandlers[p.PagIndex]
-
-	if curPag.hasNextPage {
-		curPag.Next()
-	} else if p.PagIndex < len(p.PagHandlers) - 1 {
-		p.PagIndex ++ 
+	if p.KeyIndex < len(p.KeyGroups) - 1 {
+		p.KeyIndex ++ 
 	}
 }

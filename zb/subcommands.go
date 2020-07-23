@@ -1127,10 +1127,16 @@ var cmdManage = &cobra.Command{
 				panic(err)
 			}
 
-			get := zetabase.MakeGetPages(testClient, keys, int64(20000))
-			get.GetAll(uid, "testTable")
+			get := zetabase.MakeGetPages(testClient, keys, int64(20000), uid, "testTable")
 
-			// keys, err = get.KeysAll()
+			data, err := get.DataAll()
+			for _, v := range(data) {
+				print(v)
+			}
+
+
+
+			// keys, err = get.Keys()
 			// for _, v := range(keys) {
 			// 	print(v)
 			// }
@@ -1140,44 +1146,6 @@ var cmdManage = &cobra.Command{
 			// 	print(v)
 			// }
 
-			tot := 0
-
-			data, err := get.Data()
-			for range(data) {
-				tot ++
-			}
-
-			get.Next()
-			data, err = get.Data()
-			for range(data) {
-				tot ++
-			}
-
-			get.Next()
-			data, err = get.Data()
-			for range(data) {
-				tot ++
-			}
-
-			get.Next()
-			data, err = get.Data()
-			for range(data) {
-				tot ++
-			}
-
-			get.Next()
-			data, err = get.Data()
-			for range(data) {
-				tot ++
-			}
-
-			get.Next()
-			data, err = get.Data()
-			for range(data) {
-				tot ++
-			}
-
-			print(tot)
 
 			// keys, err = get.Keys()
 			// for _, v := range(keys) {
