@@ -124,7 +124,7 @@ func addData(data map[string][]byte, curData map[string][]byte) {
 }
 
 func (p *getPages) getCurPag() *PaginationHandler{
-	pag := p.Client.Get(p.TableOwnerId, p.TableId, p.KeyGroups[p.KeyIndex])
+	pag := p.Client.getPag(p.TableOwnerId, p.TableId, p.KeyGroups[p.KeyIndex])
 	return pag 
 }
 

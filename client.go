@@ -266,8 +266,18 @@ func (z *ZetabaseClient) PutMulti(tableOwnerId, tableId string, keys []string, v
 	return nil
 }
 
+func (z *ZetabaseClient) GetSetSize(tableOwnerId, tableId string, keys []string, maxItemSize int64) *getPages {
+	getPages := MakeGetPages(z, keys, maxItemSize, tableOwnerId, tableId)
+	return getPages
+}
+
+func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *getPages {
+	defaultMaxItemSize := int64(1000)
+	return z.GetSetSize(tableOwnerId, tableId, keys, defaultMaxItemSize)
+}
+
 // Method Get fetches a given set of keys from a table and returns a PaginationHandler object.
-func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *PaginationHandler {
+func (z *ZetabaseClient) getPag(tableOwnerId, tableId string, keys []string) *PaginationHandler {
 	f := func(idx int64) (map[string][]byte, bool, error) {
 		tim, hasNxt, err := z.get(tableOwnerId, tableId, keys, idx)
 		if err == nil {

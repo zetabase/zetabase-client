@@ -1120,58 +1120,26 @@ var cmdManage = &cobra.Command{
 				panic(err)
 			}
 
-			res := testClient.ListKeys(uid, "testTable")
-			keys, err := res.KeysAll()
+			startKeys := time.Now()
+
+			listKeys := testClient.ListKeys(uid, "testBigDf3")
+			keys, err := listKeys.KeysAll()
+
+			elapsedKeys := time.Since(startKeys)
+			log.Printf("Keys took %s", elapsedKeys)
 			
 			if err != nil {
 				panic(err)
 			}
 
-			get := zetabase.MakeGetPages(testClient, keys, int64(20000), uid, "testTable")
+			startData := time.Now()
 
-			// data, err := get.DataAll()
-			// for _, v := range(data) {
-			// 	print(v)
-			// }
+			res := testClient.GetSetSize(uid, "testBigDf3", keys, 20000)
+			data, _ := res.DataAll()
+			print(data[keys[0]])
 
-			data, err := get.GetFirstNPages(3)
-			for _, v := range(data) {
-				print(v)
-			}
-
-
-
-			// keys, err = get.Keys()
-			// for _, v := range(keys) {
-			// 	print(v)
-			// }
-			
-			// data, err := get.DataAll()
-			// for _, v := range(data) {
-			// 	print(v)
-			// }
-
-
-			// keys, err = get.Keys()
-			// for _, v := range(keys) {
-			// 	print(v)
-			// }
-
-
-
-
-
-
-			// resData := testClient.Get(uid, "testTable", keys)
-			// data, err := resData.DataAll()
-			// if err != nil {
-			// 	panic(err)
-			// }
-
-			// for _, v := range(data) {
-			// 	print(v)
-			// }
-			
+			elapsedData := time.Since(startData)
+			log.Printf("Data took %s", elapsedData)			
 
 			// nothing
 			// uid := "a68d5254-206c-4782-bb10-eb33037e0d4e"
