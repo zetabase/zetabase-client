@@ -44,6 +44,7 @@ type ZetabaseClient struct {
 	jwtToken     *string
 	debugMode    bool
 	ctx          context.Context
+	maxItemSize  int64
 }
 
 // Creates a new client for a given user ID uid. The user ID should be in UUID form.
@@ -64,6 +65,7 @@ func NewZetabaseClient(uid string) *ZetabaseClient {
 		client:       nil,
 		jwtToken:     nil,
 		ctx:          context.Background(),
+		maxItemSize:  int64(1000),
 	}
 }
 
@@ -266,14 +268,13 @@ func (z *ZetabaseClient) PutMulti(tableOwnerId, tableId string, keys []string, v
 	return nil
 }
 
-func (z *ZetabaseClient) GetSetSize(tableOwnerId, tableId string, keys []string, maxItemSize int64) *getPages {
-	getPages := MakeGetPages(z, keys, maxItemSize, tableOwnerId, tableId)
-	return getPages
+func (z *ZetabaseClient) SetMaxItemSize(newSize int64) {
+	z.maxItemSize = newSize
 }
 
 func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *getPages {
-	defaultMaxItemSize := int64(1000)
-	return z.GetSetSize(tableOwnerId, tableId, keys, defaultMaxItemSize)
+	getPages := MakeGetPages(z, keys, z.maxItemSize, tableOwnerId, tableId)
+	return getPages
 }
 
 // Method Get fetches a given set of keys from a table and returns a PaginationHandler object.

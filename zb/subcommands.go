@@ -1115,6 +1115,7 @@ var cmdManage = &cobra.Command{
 			testClient := zetabase.NewZetabaseClient(uid)
 			testClient.SetIdPassword(handle, password)
 			testClient.SetServerAddr("api.zetabase.io:443")
+			testClient.SetMaxItemSize(int64(20000))
 			err := testClient.Connect()
 			if err != nil {
 				panic(err)
@@ -1133,8 +1134,8 @@ var cmdManage = &cobra.Command{
 			}
 
 			startData := time.Now()
-
-			res := testClient.GetSetSize(uid, "testBigDf3", keys, 20000)
+		
+			res := testClient.Get(uid, "testBigDf3", keys)
 			data, _ := res.DataAll()
 			print(data[keys[0]])
 
