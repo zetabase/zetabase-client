@@ -2,10 +2,7 @@ package zetabase
 
 import (
 	"github.com/zetabase/zetabase-client/zbprotocol"
-	"log"
 	"math/rand"
-	"testing"
-	"time"
 )
 
 var jsonRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ{}:,\"[]")
@@ -31,6 +28,7 @@ func makeFakePairs(n int) []*zbprotocol.DataPair {
 	return arr
 }
 
+/*
 func Test_MultiPutExtraSigningBytesBenchmark(t *testing.T) {
 	nPairs := 1000000
 	nIters := 10
@@ -65,3 +63,4 @@ func Test_MultiPutExtraSigningBytesBenchmark(t *testing.T) {
 	log.Printf("MD5-Abbrev: %d iterations of %d pairs each took:\t %d milliseconds.", nIters, nPairs, ms3)
 	log.Printf("Murmur3-sliding: %d iterations of %d pairs each took:\t %d milliseconds.", nIters, nPairs, ms4)
 }
+*/

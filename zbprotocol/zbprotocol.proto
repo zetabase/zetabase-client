@@ -17,6 +17,7 @@ service ZetabaseProvider {
     rpc CreateTable(TableCreate) returns (ZbError) {}
     rpc GetData(TableGet) returns (TableGetResponse) {}
     rpc QueryData(TableQuery) returns (TableGetResponse) {}
+    rpc QueryKeys(TableQuery) returns (ListKeysResponse) {}
     rpc CreateUser(NewSubIdentityRequest) returns (NewIdentityResponse) {} // ???
     rpc SetPermission(PermissionsEntry) returns (ZbError) {} // ???
     rpc LoginUser(AuthenticateUser) returns (AuthenticateUserResponse) {}

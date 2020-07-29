@@ -44,6 +44,7 @@ type ZetabaseClient struct {
 	jwtToken     *string
 	debugMode    bool
 	ctx          context.Context
+	maxItemSize  int64
 }
 
 // Creates a new client for a given user ID uid. The user ID should be in UUID form.
@@ -64,6 +65,7 @@ func NewZetabaseClient(uid string) *ZetabaseClient {
 		client:       nil,
 		jwtToken:     nil,
 		ctx:          context.Background(),
+		maxItemSize:  int64(1000),
 	}
 }
 
@@ -213,7 +215,7 @@ func unwrapZbError(zbError *zbprotocol.ZbError) error {
 }
 
 // Method PutMulti puts multiple key-value pairs into a table at once
-func (z *ZetabaseClient) PutMulti(tableOwnerId, tableId string, keys []string, valus [][]byte, overwrite bool) error {
+func (z *ZetabaseClient) putMultiRaw(tableOwnerId, tableId string, keys []string, valus [][]byte, overwrite bool) error {
 	if len(valus) != len(keys) {
 		return errors.New("ImproperDimensions")
 	}
@@ -245,8 +247,38 @@ func (z *ZetabaseClient) PutMulti(tableOwnerId, tableId string, keys []string, v
 	}
 }
 
+const (
+	GrpcMaxBytes = 4000000
+)
+
+// Method PutMulti puts multiple key-value pairs into a table at once
+func (z *ZetabaseClient) PutMulti(tableOwnerId, tableId string, keys []string, valus [][]byte, overwrite bool) error {
+	if len(valus) != len(keys) {
+		return errors.New("ImproperDimensions")
+	}
+
+	maxBytes := GrpcMaxBytes / 2
+
+	pgs := makePutPages(z, keys, valus, uint64(maxBytes))
+	err := pgs.putAll(tableOwnerId, tableId, overwrite)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (z *ZetabaseClient) SetMaxItemSize(newSize int64) {
+	z.maxItemSize = newSize
+}
+
+func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *getPages {
+	getPages := MakeGetPages(z, keys, z.maxItemSize, tableOwnerId, tableId)
+	return getPages
+}
+
 // Method Get fetches a given set of keys from a table and returns a PaginationHandler object.
-func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *PaginationHandler {
+func (z *ZetabaseClient) getPag(tableOwnerId, tableId string, keys []string) *PaginationHandler {
 	f := func(idx int64) (map[string][]byte, bool, error) {
 		tim, hasNxt, err := z.get(tableOwnerId, tableId, keys, idx)
 		if err == nil {
