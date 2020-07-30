@@ -1113,34 +1113,76 @@ var cmdManage = &cobra.Command{
 			password := "test_pass"
 
 			testClient := zetabase.NewZetabaseClient(uid)
+			testClient.SetInsecure()
 			testClient.SetIdPassword(handle, password)
-			testClient.SetServerAddr("api.zetabase.io:443")
+			testClient.SetServerAddr("127.0.0.1:9991")
 			testClient.SetMaxItemSize(int64(20000))
 			err := testClient.Connect()
 			if err != nil {
 				panic(err)
 			}
 
-			startKeys := time.Now()
+			query := zetabase.QEq("height", 4.5)
 
-			listKeys := testClient.ListKeys(uid, "testBigDf3")
-			keys, err := listKeys.KeysAll()
+			res := testClient.Query(uid, "110557021046002449388685434801745048074", query)
+		
+			if err != nil {
+				panic(err)
+			} 
 
-			elapsedKeys := time.Since(startKeys)
-			log.Printf("Keys took %s", elapsedKeys)
-			
+			data, err := res.DataAll()
+
 			if err != nil {
 				panic(err)
 			}
 
-			startData := time.Now()
-		
-			res := testClient.Get(uid, "testBigDf3", keys)
-			data, _ := res.DataAll()
-			print(data[keys[0]])
+			keys := []string{}
+			for k, _ := range(data) {
+				keys = append(keys, k)
+			}
 
-			elapsedData := time.Since(startData)
-			log.Printf("Data took %s", elapsedData)			
+			res1 := testClient.Get(uid, "110557021046002449388685434801745048074", keys)
+
+			if err != nil {
+				panic(err)
+			}
+
+			data, err = res1.DataAll()
+
+			if err != nil {
+				panic(err)
+			}
+
+			for _, v := range(data) {
+				print(v)
+			}
+
+
+
+
+			print("sucess")
+
+
+			// startKeys := time.Now()
+
+			// listKeys := testClient.ListKeys(uid, "testBigDf3")
+			// keys, err := listKeys.KeysAll()
+
+			// elapsedKeys := time.Since(startKeys)
+			// log.Printf("Keys took %s", elapsedKeys)
+			
+			// if err != nil {
+			// 	panic(err)
+			// }
+
+			// startData := time.Now()
+		
+			// res := testClient.Get(uid, "testBigDf3", keys)
+			// data, _ := res.DataAll()
+			// print(data[keys[0]])
+
+			// elapsedData := time.Since(startData)
+			// log.Printf("Data took %s", elapsedData)			
 
 			// nothing
 			// uid := "a68d5254-206c-4782-bb10-eb33037e0d4e"

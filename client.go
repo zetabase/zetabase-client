@@ -479,9 +479,13 @@ func (z *ZetabaseClient) ModifySubIdentity(subUserId string, newHandle *string, 
 func (z *ZetabaseClient) Query(tableOwnerId, tableId string, qry0 SubQueryConvertible) *PaginationHandler {
 	qry := qry0.ToSubQuery(tableOwnerId, tableId)
 	f := func(idx int64) (map[string][]byte, bool, error) {
+		m := map[string][]byte{}
 		tim, hasNxt, err := z.query(tableOwnerId, tableId, idx, qry)
 		if err == nil {
-			return tim, hasNxt, nil
+			for _, k := range tim {
+				m[k] = nil
+			}
+			return m, hasNxt, nil
 		} else {
 			return nil, false, err
 		}
@@ -489,13 +493,13 @@ func (z *ZetabaseClient) Query(tableOwnerId, tableId string, qry0 SubQueryConver
 	return StandardPaginationHandlerFor(f)
 }
 
-func (z *ZetabaseClient) query(tblOwnerId, tblId string, pgIdx int64, qry *zbprotocol.TableSubQuery) (map[string][]byte, bool, error) {
+func (z *ZetabaseClient) query(tblOwnerId, tblId string, pgIdx int64, qry *zbprotocol.TableSubQuery) ([]string, bool, error) {
 	if !z.checkReady() {
 		return nil, false, errors.New("NotReady")
 	}
 	nonce := z.nonceMaker.Get()
 	poc := z.getCredential(nonce, nil)
-	res, err := z.client.QueryData(z.ctx, &zbprotocol.TableQuery{
+	res, err := z.client.QueryKeys(z.ctx, &zbprotocol.TableQuery{
 		Id:           z.userId,
 		TableOwnerId: tblOwnerId,
 		TableId:      tblId,
@@ -507,12 +511,8 @@ func (z *ZetabaseClient) query(tblOwnerId, tblId string, pgIdx int64, qry *zbpro
 	if err != nil {
 		return nil, false, err
 	} else {
-		dat := res.GetData()
-		m := map[string][]byte{}
-		for _, datum := range dat {
-			m[datum.GetKey()] = datum.GetValue()
-		}
-		return m, res.GetPagination().GetHasNextPage(), nil
+		keys := res.GetKeys()
+		return keys, res.GetPagination().GetHasNextPage(), nil
 	}
 }
 
