@@ -1124,11 +1124,11 @@ var cmdManage = &cobra.Command{
 
 			query := zetabase.QEq("height", 4.5)
 
-			res := testClient.Query(uid, "110557021046002449388685434801745048074", query)
-		
+			res, err := testClient.QueryData(uid, "110557021046002449388685434801745048074", query)
+
 			if err != nil {
 				panic(err)
-			} 
+			}
 
 			data, err := res.DataAll()
 
@@ -1136,27 +1136,10 @@ var cmdManage = &cobra.Command{
 				panic(err)
 			}
 
-			keys := []string{}
-			for k, _ := range(data) {
-				keys = append(keys, k)
-			}
-
-			res1 := testClient.Get(uid, "110557021046002449388685434801745048074", keys)
-
-			if err != nil {
-				panic(err)
-			}
-
-			data, err = res1.DataAll()
-
-			if err != nil {
-				panic(err)
-			}
-
-			for _, v := range(data) {
+			for k, v := range(data) {
+				print(k)
 				print(v)
 			}
-
 
 
 

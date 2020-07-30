@@ -516,6 +516,23 @@ func (z *ZetabaseClient) query(tblOwnerId, tblId string, pgIdx int64, qry *zbpro
 	}
 }
 
+func (z *ZetabaseClient) QueryData(tbldOwnerId, tblId string, qry SubQueryConvertible) (*getPages, error) {
+	res := z.Query(tbldOwnerId, tblId, qry)
+	data, err := res.DataAll()
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys := []string{}
+	for k := range(data) {
+		keys = append(keys, k)
+	}
+
+	tblData := z.Get(tbldOwnerId, tblId, keys)
+	return tblData, nil
+}
+
 // Put a given key-value pair into a table
 func (z *ZetabaseClient) PutData(tableOwnerId, tableId, key string, valu []byte, overwrite bool) error {
 	if !z.checkReady() {
