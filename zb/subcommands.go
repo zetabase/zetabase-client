@@ -1124,7 +1124,7 @@ var cmdManage = &cobra.Command{
 
 			query := zetabase.QEq("height", 4.5)
 
-			res, err := testClient.QueryData(uid, "110557021046002449388685434801745048074", query)
+			res := testClient.Query(uid, "110557021046002449388685434801745048074", query)
 
 			if err != nil {
 				panic(err)

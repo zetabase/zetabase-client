@@ -171,7 +171,11 @@ func shellHandle(promptSuff, quitToken string, identity *UserIdentity, zbclient 
 			return
 		}
 		qry := res.ToQuery()
-		pages := zbclient.Query(identity.Id, tblId, qry)
+		pages, err := zbclient.QueryData(identity.Id, tblId, qry)
+		if err != nil {
+			printShellError(err)
+			return
+		}
 		var pairs []*zbprotocol.DataPair
 		var keyLst []string
 		dat, _ := pages.Data()
