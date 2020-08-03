@@ -1122,15 +1122,15 @@ var cmdManage = &cobra.Command{
 				panic(err)
 			}
 
-			query := zetabase.QEq("height", 4.5)
+			query := zetabase.QEq("thisdoesnotexist", "Eek")
 
-			res := testClient.Query(uid, "110557021046002449388685434801745048074", query)
+			res, err := testClient.QueryData(uid, "PermTest", query)
 
 			if err != nil {
 				panic(err)
 			}
 
-			data, err := res.DataAll()
+			data, err := res.Keys()
 
 			if err != nil {
 				panic(err)
@@ -1140,7 +1140,6 @@ var cmdManage = &cobra.Command{
 				print(k)
 				print(v)
 			}
-
 
 
 			print("sucess")
