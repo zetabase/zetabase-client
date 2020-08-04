@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	prompt "github.com/c-bata/go-prompt"
+	"github.com/spf13/viper"
 	"github.com/zetabase/zetabase-client"
 	"github.com/zetabase/zetabase-client/zbprotocol"
-	"github.com/spf13/viper"
 	"os"
 	"strings"
 )
@@ -155,6 +155,10 @@ func shellHandle(promptSuff, quitToken string, identity *UserIdentity, zbclient 
 		return poc, nil
 	}
 
+	if len(identity.Id) == 0 {
+		identity.Id = zbclient.Id()
+	}
+
 	switch args[0] {
 	case "query":
 		if len(args) < 3 {
@@ -171,7 +175,11 @@ func shellHandle(promptSuff, quitToken string, identity *UserIdentity, zbclient 
 			return
 		}
 		qry := res.ToQuery()
-		pages, err := zbclient.QueryData(identity.Id, tblId, qry)
+		uid := identity.Id
+		//if len(uid) == 0 {
+		//	uid = zbclient.Id()
+		//}
+		pages, err := zbclient.QueryData(uid, tblId, qry)
 		if err != nil {
 			printShellError(err)
 			return
