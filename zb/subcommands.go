@@ -1113,34 +1113,24 @@ var cmdManage = &cobra.Command{
 			password := "test_pass"
 
 			testClient := zetabase.NewZetabaseClient(uid)
-			testClient.SetInsecure()
+			//testClient.SetInsecure()
+			//testClient.SetServerAddr("127.0.0.1:9991")
+			testClient.SetServerAddr("api.zetabase.io:443")
 			testClient.SetIdPassword(handle, password)
-			testClient.SetServerAddr("127.0.0.1:9991")
 			testClient.SetMaxItemSize(int64(20000))
 			err := testClient.Connect()
 			if err != nil {
 				panic(err)
 			}
 
-			query := zetabase.QEq("sdfsdf", 10000)
+			append := zbprotocol.PermissionLevel_APPEND
+			individual := zbprotocol.PermissionAudienceType_INDIVIDUAL
 
-			res := testClient.Query(uid, "PermTest", query)
+			perm := zetabase.NewPermissionEntry(append, individual, "1551e62d-41d6-4406-940b-25dccf8d5220")
+			permConstraint := zetabase.NewPermConstraintOrder("age")
+			perm.AddConstraint(permConstraint)
 
-			if err != nil {
-				panic(err)
-			}
-
-			data, err := res.Keys()
-
-			if err != nil {
-				panic(err)
-			}
-
-			for k, v := range(data) {
-				print(k)
-				print(v)
-			}
-
+			testClient.AddPermission(uid, "PermTest1", perm)
 
 
 			print("sucess")

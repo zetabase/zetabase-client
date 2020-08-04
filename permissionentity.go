@@ -31,6 +31,34 @@ func NewPermConstraintUserId(field string) *PermConstraint {
 	}
 }
 
+func NewPermConstraintTime(field string) *PermConstraint {
+	return &PermConstraint{
+		Field:    field,
+		ReqValue: "@time",
+	}
+}
+
+func NewPermConstraintOrder(field string) *PermConstraint {
+	return &PermConstraint{
+		Field:    field,
+		ReqValue: "@order",
+	}
+}
+
+func NewPermConstraintRandom(field string) *PermConstraint {
+	return &PermConstraint{
+		Field:    field,
+		ReqValue: "@random",
+	}
+}
+
+func NewPermConstraintCustom(field, reqValue string) *PermConstraint {
+	return &PermConstraint{
+		Field:     field,
+		ReqValue:  reqValue,
+	}
+}
+
 func NewPermissionEntry(level zbprotocol.PermissionLevel, typ zbprotocol.PermissionAudienceType, audId string) *PermEntry {
 	return &PermEntry{
 		Level:        level,
@@ -50,7 +78,17 @@ func toFieldConstraint(uid, tblId string, cs *PermConstraint) *zbprotocol.Permis
 	if strings.ToLower(cs.ReqValue) == "@uid" {
 		fTyp = zbprotocol.FieldConstraintValueType_UID
 		fVal = ""
+	} else if strings.ToLower(cs.ReqValue) == "@time" {
+		fTyp = zbprotocol.FieldConstraintValueType_TIMESTAMP
+		fVal = ""
+	} else if strings.ToLower(cs.ReqValue) == "@order" {
+		fTyp = zbprotocol.FieldConstraintValueType_NATURAL_ORDER
+		fVal = ""
+	} else if strings.ToLower(cs.ReqValue) == "@random" {
+		fTyp = zbprotocol.FieldConstraintValueType_RANDOM
+		fVal = ""
 	}
+	
 	return &zbprotocol.PermissionConstraint{
 		ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
 		FieldConstraint: &zbprotocol.FieldConstraint{
