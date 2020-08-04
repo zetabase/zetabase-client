@@ -158,11 +158,19 @@ func (p *getPages) KeysAll() ([]string, error) {
 }
 
 func (p *getPages) Data() (map[string][]byte, error) {
+	if len(p.KeyGroups) == 0 {
+		return make(map[string][]byte), nil
+	}
+
 	curPag := p.getCurPag()
 	return curPag.Data()
 }
 
 func (p *getPages) Keys() ([]string, error) {
+	if len(p.KeyGroups) == 0 {
+        return []string{}, nil
+    }
+
 	curPag := p.getCurPag()
 	return curPag.Keys()
 }
