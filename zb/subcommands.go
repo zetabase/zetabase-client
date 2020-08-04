@@ -1072,6 +1072,36 @@ var cmdManage = &cobra.Command{
 
 
 		} else if task == AdminTaskTestClient {
+			// This is the tweets test corresponding to the JS example
+			tblId := "tweetstest2"
+			parentId := "a68d5254-206c-4782-bb10-eb33037e0d4e"
+			client := zetabase.NewZetabaseClient("")
+			client.SetInsecure()
+			client.SetServerAddr("localhost:9991")
+			client.SetParent(parentId)
+			client.SetIdPassword("testweb5", "testweb5")
+			err := client.Connect()
+			if err != nil {
+				panic(err)
+			}
+			keys, err := client.ListKeys("a68d5254-206c-4782-bb10-eb33037e0d4e", tblId).KeysAll()
+			log.Printf("Got keys: %v\n", keys)
+
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Connected client with ID: %s\n", client.Id())
+			}
+
+			tweet := "hello go world!"
+			tweetData := fmt.Sprintf("{\"text\":\"%s\",\"uid\":\"%s\"}", tweet, client.Id())
+			key := fmt.Sprintf("tweet/%s/%d", client.Id(), time.Now().Unix())
+
+			err = client.PutData(parentId, tblId, key, []byte(tweetData), false)
+			if err != nil {
+				panic(err)
+			}
+		} else if task == AdminTaskTestClient {
 			identity := loadIdentityFromConfigs()
 			rig := zetabase.NewZetabaseClient(identity.Id)
 			rig.SetIdKey(identity.PrivKey, identity.PubKey)
