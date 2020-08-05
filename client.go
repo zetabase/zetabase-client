@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ClientVersion = "0.1"
+	ClientVersion = "0.1.1"
 	ClientVersionCode = "Curry"
 )
 
