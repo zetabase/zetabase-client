@@ -69,6 +69,27 @@ func NewZetabaseClient(uid string) *ZetabaseClient {
 	}
 }
 
+func NewZetabaseUserClient(parentId string) *ZetabaseClient {
+	return &ZetabaseClient{
+		userId:       "",
+		serverAddr:   "api.zetabase.io:443",
+		insecure:     false,
+		noCertVerify: false,
+		debugMode:    false,
+		parentId:     &parentId,
+		loginId:      nil,
+		privKey:      nil,
+		pubKey:       nil,
+		password:     nil,
+		nonceMaker:   NewNonceMaker(),
+		conn:         nil,
+		client:       nil,
+		jwtToken:     nil,
+		ctx:          context.Background(),
+		maxItemSize:  int64(1000),
+	}
+}
+
 // Checks version compatibility between client and server
 func (z *ZetabaseClient) CheckVersion() (bool, *zbprotocol.VersionDetails, error) {
 	if !z.checkReady() {
@@ -198,6 +219,34 @@ func (z *ZetabaseClient) getCredential(nonce int64, xBytes []byte) *zbprotocol.P
 		poc = z.ecdsaCredential(nonce, xBytes)
 	}
 	return poc
+}
+
+// Method ListTables lists the tables associated with the ZetabaseClient's account
+func (z *ZetabaseClient) ListTables() ([]string, error) {
+	if !z.checkReady() {
+		return nil, errors.New("NotReady")
+	}
+	
+	tableNames := []string{}
+
+	nonce := z.nonceMaker.Get()
+	poc := z.getCredential(nonce, nil)
+
+	res, err := z.client.ListTables(z.ctx, &zbprotocol.ListTablesRequest{
+		Id:            z.userId,
+		Nonce:         nonce,
+		TableOwnerId:  z.userId,
+		Credential:    poc,
+	})
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	for _, table := range(res.GetTableDefinitions()) {
+		tableNames = append(tableNames, table.GetTableId())
+	}
+	return tableNames, nil
 }
 
 // Method ListKeys lists the keys for a given table
