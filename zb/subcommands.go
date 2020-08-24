@@ -1071,6 +1071,24 @@ var cmdManage = &cobra.Command{
 			}
 
 
+		} else if task == AdminTaskGetWebhook {
+			identity := loadIdentityFromConfigs()
+			if len(args) != 1 {
+				PrintErrorStringAndQuit("Please specify a table name, e.g. `zb manage -t webhook tablename`.")
+			}
+			tbl := args[0]
+			if len(tbl) == 0 {
+				PrintErrorStringAndQuit("Please specify a table name, e.g. `zb manage -t webhook tablename`.")
+			}
+			tblOwner := chooseDefaultTableOwnerId(identity)
+			if tblOwner != identity.Id {
+				if isVerbose() {
+					Logf("Using table owner: %s", tblOwner)
+				}
+			}
+
+			log.Printf("Webhook address: https://zetabase.io/api/webhooks/%s/%s\n", tblOwner, tbl)
+
 		} else if task == AdminTaskTestClient {
 			// This is the tweets test corresponding to the JS example
 			tblId := "tweetstest2"

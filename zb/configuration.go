@@ -29,6 +29,7 @@ const (
 	AdminTaskTestingGround = "test"
 	AdminTaskListSubUsers = "listusers"
 	AdminTaskTestClient    = "client"
+	AdminTaskGetWebhook    = "webhook"
 
 	ConfigKeyIdentityFile   = "identity"
 	ConfigKeyTableId        = "table"
