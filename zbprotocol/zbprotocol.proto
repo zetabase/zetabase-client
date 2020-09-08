@@ -36,6 +36,7 @@ enum TableDataFormat {
 
 enum PermissionConstraintType {
     FIELD = 0;
+    KEY_PATTERN = 1;
 }
 
 enum FieldConstraintType {
@@ -134,9 +135,18 @@ message FieldConstraint {
     string requiredValue = 4;
 }
 
+message KeyPatternConstraint {
+    FieldConstraintType constraintType = 1;
+    string requiredPrefix = 2;
+    string requiredSuffix = 3;
+    FieldConstraintValueType valueType = 4;
+    string requiredValue = 5;
+}
+
 message PermissionConstraint {
     PermissionConstraintType constraintType = 1;
     FieldConstraint fieldConstraint = 2;
+    KeyPatternConstraint keyConstraint = 3;
 }
 
 message PermissionsEntry {

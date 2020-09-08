@@ -9,10 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/johnsiilver/getcert"
-	"github.com/zetabase/zetabase-client"
-	"github.com/zetabase/zetabase-client/zbprotocol"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zetabase/zetabase-client"
+	"github.com/zetabase/zetabase-client/zbprotocol"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io/ioutil"
@@ -521,48 +521,77 @@ func getTableCreate(permsRaw string, identity *UserIdentity, tblId string, typ s
 			fld, valu := arr[i], arr[i+1]
 			//Logf("Field, value (%d, %d) = %s, %s", i, i+1, fld, valu)
 			// Check if value is a special identifier...
+			cTyp := zbprotocol.PermissionConstraintType_KEY_PATTERN
+			if fld != "@key" {
+				cTyp = zbprotocol.PermissionConstraintType_FIELD
+			}
+
 			if valu == "@uid" {
 				Logf("Adding permission constraint: field %s must contain user's ID...", fld)
 				permConstraints = append(permConstraints, &zbprotocol.PermissionConstraint{
-					ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
+					ConstraintType: cTyp,
 					FieldConstraint: &zbprotocol.FieldConstraint{
 						ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
 						FieldKey:       fld,
 						ValueType:      zbprotocol.FieldConstraintValueType_UID,
 						RequiredValue:  "",
+					}, KeyConstraint: &zbprotocol.KeyPatternConstraint{
+						ConstraintType:       zbprotocol.FieldConstraintType_EQUALS_VALUE,
+						RequiredPrefix:       "",
+						RequiredSuffix:       "",
+						ValueType:            zbprotocol.FieldConstraintValueType_UID,
+						RequiredValue:        "",
 					},
 				})
 			} else if valu == "@order" {
 				Logf("Natural order field: %s", fld)
 				permConstraints = append(permConstraints, &zbprotocol.PermissionConstraint{
-					ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
+					ConstraintType: cTyp,
 					FieldConstraint:      &zbprotocol.FieldConstraint{
 						ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
 						FieldKey:       fld,
 						ValueType:      zbprotocol.FieldConstraintValueType_NATURAL_ORDER,
 						RequiredValue:  "",
+					}, KeyConstraint: &zbprotocol.KeyPatternConstraint{
+						ConstraintType:       zbprotocol.FieldConstraintType_EQUALS_VALUE,
+						RequiredPrefix:       "",
+						RequiredSuffix:       "",
+						ValueType:            zbprotocol.FieldConstraintValueType_NATURAL_ORDER,
+						RequiredValue:        "",
 					},
 				})
 			} else if valu == "@time" {
 				Logf("Timestamp field: %s", fld)
 				permConstraints = append(permConstraints, &zbprotocol.PermissionConstraint{
-					ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
+					ConstraintType: cTyp,
 					FieldConstraint:      &zbprotocol.FieldConstraint{
 						ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
 						FieldKey:       fld,
 						ValueType:      zbprotocol.FieldConstraintValueType_TIMESTAMP,
 						RequiredValue:  "",
+					}, KeyConstraint: &zbprotocol.KeyPatternConstraint{
+						ConstraintType:       zbprotocol.FieldConstraintType_EQUALS_VALUE,
+						RequiredPrefix:       "",
+						RequiredSuffix:       "",
+						ValueType:            zbprotocol.FieldConstraintValueType_TIMESTAMP,
+						RequiredValue:        "",
 					},
 				})
 			} else if valu == "@random" {
 				Logf("Random field: %s", fld)
 				permConstraints = append(permConstraints, &zbprotocol.PermissionConstraint{
-					ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
+					ConstraintType: cTyp,
 					FieldConstraint:      &zbprotocol.FieldConstraint{
 						ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
 						FieldKey:       fld,
 						ValueType:      zbprotocol.FieldConstraintValueType_RANDOM,
 						RequiredValue:  "",
+					}, KeyConstraint: &zbprotocol.KeyPatternConstraint{
+						ConstraintType:       zbprotocol.FieldConstraintType_EQUALS_VALUE,
+						RequiredPrefix:       "",
+						RequiredSuffix:       "",
+						ValueType:            zbprotocol.FieldConstraintValueType_RANDOM,
+						RequiredValue:        "",
 					},
 				})
 			} else {
@@ -571,15 +600,23 @@ func getTableCreate(permsRaw string, identity *UserIdentity, tblId string, typ s
 					PrintErrorStringAndQuit("Empty valued constraints not supported.")
 				}
 				permConstraints = append(permConstraints, &zbprotocol.PermissionConstraint{
-					ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
+					ConstraintType: cTyp,
 					FieldConstraint: &zbprotocol.FieldConstraint{
 						ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
 						FieldKey:       fld,
 						ValueType:      zbprotocol.FieldConstraintValueType_CONSTANT,
 						RequiredValue:  valu,
+					}, KeyConstraint: &zbprotocol.KeyPatternConstraint{
+						ConstraintType:       zbprotocol.FieldConstraintType_EQUALS_VALUE,
+						RequiredPrefix:       "",
+						RequiredSuffix:       "",
+						ValueType:            zbprotocol.FieldConstraintValueType_CONSTANT,
+						RequiredValue:        "",
 					},
 				})
 			}
+
+
 		}
 
 		p := &zbprotocol.PermissionsEntry{
