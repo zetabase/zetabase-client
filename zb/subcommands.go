@@ -897,7 +897,7 @@ var cmdView = &cobra.Command{
 }
 
 func listKeys(identity *UserIdentity, tbl, tblOwner, keyPattern string, nonce int64, poc *zbprotocol.ProofOfCredential, client zbprotocol.ZetabaseProviderClient) ([]string, error) {
-	Logf("debug - List keys: %s %s %s - pattern %s...", identity.Id, tbl, tblOwner, keyPattern)
+	//Logf("debug - List keys: %s %s %s - pattern %s...", identity.Id, tbl, tblOwner, keyPattern)
 	lkr := &zbprotocol.ListKeysRequest{
 		Id:           identity.Id,
 		TableId:      tbl,
