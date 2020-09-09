@@ -92,6 +92,7 @@ var (
 
 type IdentityDefinition struct {
 	Id         string `json:"id"`
+	Handle     string `json:"handle"`
 	ParentId   string `json:"parent_id,omitempty"`
 	PubKeyEnc  string `json:"pub_key"`
 	PrivKeyEnc string `json:"priv_key"`

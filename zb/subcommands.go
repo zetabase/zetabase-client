@@ -985,6 +985,7 @@ var cmdManage = &cobra.Command{
 				idDefn := IdentityDefinition{
 					Id:         id,
 					ParentId:   "",
+					Handle:     name,
 					PubKeyEnc:  string(pubKeyEnc),
 					PrivKeyEnc: string(privKeyEnc),
 				}
@@ -1057,6 +1058,7 @@ var cmdManage = &cobra.Command{
 				idDefn := IdentityDefinition{
 					Id:         id,
 					ParentId:   parentId,
+					Handle:     name,
 					PubKeyEnc:  string(pubKeyEnc),
 					PrivKeyEnc: string(privKeyEnc),
 				}
