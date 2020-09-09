@@ -17,6 +17,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"github.com/zetabase/zetabase-client/zbprotocol"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -324,6 +325,14 @@ func (z *ZetabaseClient) SetMaxItemSize(newSize int64) {
 func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *getPages {
 	getPages := MakeGetPages(z, keys, z.maxItemSize, tableOwnerId, tableId)
 	return getPages
+}
+
+func (z *ZetabaseClient) StringDump() string {
+	pid := ""
+	if z.parentId != nil {
+		pid =  *z.parentId
+	}
+	return fmt.Sprintf("ZB client for %s (parent %s)", z.userId, pid)
 }
 
 // Method Get fetches a given set of keys from a table and returns a PaginationHandler object.

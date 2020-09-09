@@ -897,7 +897,7 @@ var cmdView = &cobra.Command{
 }
 
 func listKeys(identity *UserIdentity, tbl, tblOwner, keyPattern string, nonce int64, poc *zbprotocol.ProofOfCredential, client zbprotocol.ZetabaseProviderClient) ([]string, error) {
-	//Logf("debug - List keys: %s %s %s...", identity.Id, tbl, tblOwner)
+	Logf("debug - List keys: %s %s %s - pattern %s...", identity.Id, tbl, tblOwner, keyPattern)
 	lkr := &zbprotocol.ListKeysRequest{
 		Id:           identity.Id,
 		TableId:      tbl,
@@ -1282,13 +1282,21 @@ func isVerbose() bool {
 func makeNewClient(uid string, privKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey) *zetabase.ZetabaseClient {
 	insec := viper.GetBool(ConfigKeyConnectInsecure)
 	host := viper.GetString(ConfigKeyZbHostPort)
+	loginParentId := viper.GetString(ConfigKeyLoginParentId)
+	loginHandl := viper.GetString(ConfigKeyLoginId)
+	loginPass := viper.GetString(ConfigKeyIdPassword)
 	cli := zetabase.NewZetabaseClient(uid)
+	if len(loginParentId) > 0 {
+		cli.SetParent(loginParentId)
+	}
 	if insec {
 		cli.SetInsecure()
 	}
 	cli.SetServerAddr(host)
 	if privKey != nil && pubKey != nil {
 		cli.SetIdKey(privKey, pubKey)
+	} else if len(loginHandl) > 0 {
+		cli.SetIdPassword(loginHandl, loginPass)
 	}
 	err := cli.Connect()
 	if err != nil {
