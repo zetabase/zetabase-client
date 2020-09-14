@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	ClientVersion = "0.1.1"
+	ClientVersion     = "0.1.1"
 	ClientVersionCode = "Curry"
 )
 
@@ -39,6 +39,8 @@ type ZetabaseClient struct {
 	pubKey       *ecdsa.PublicKey
 	loginId      *string
 	password     *string
+	source3pa    *string
+	token3pa     *string
 	nonceMaker   *NonceMaker
 	conn         *grpc.ClientConn
 	client       zbprotocol.ZetabaseProviderClient
@@ -61,6 +63,8 @@ func NewZetabaseClient(uid string) *ZetabaseClient {
 		privKey:      nil,
 		pubKey:       nil,
 		password:     nil,
+		source3pa:    nil,
+		token3pa:     nil,
 		nonceMaker:   NewNonceMaker(),
 		conn:         nil,
 		client:       nil,
@@ -131,6 +135,13 @@ func (z *ZetabaseClient) SetIdKey(priv *ecdsa.PrivateKey, pub *ecdsa.PublicKey) 
 	z.pubKey = pub
 }
 
+// Set third-party authentication credentials
+func (z *ZetabaseClient) SetThirdPartyAuthToken(handle, token, source string) {
+	z.source3pa = &source
+	z.token3pa = &token
+	z.loginId = &handle
+}
+
 // Set a customer server address (for on-premises installations only)
 func (z *ZetabaseClient) SetServerAddr(addr string) {
 	z.serverAddr = addr
@@ -144,7 +155,7 @@ func (z *ZetabaseClient) SetIdPassword(loginId, pwd string) {
 
 // Check if client is ready to communicate with server
 func (z *ZetabaseClient) checkReady() bool {
-	if z.privKey != nil || (z.password != nil && z.loginId != nil) {
+	if z.privKey != nil || ((z.password != nil || z.source3pa != nil) && z.loginId != nil) {
 		if z.conn != nil {
 			if z.loginId != nil && z.jwtToken == nil {
 				err := z.authLoginJwt()
@@ -186,24 +197,40 @@ func (z *ZetabaseClient) ecdsaCredential(nonce int64, extraBytes []byte) *zbprot
 func (z *ZetabaseClient) authLoginJwt() error {
 	if z.conn == nil {
 		return errors.New("NotReady")
-	} else if z.password == nil {
+	} else if z.password == nil && (z.source3pa == nil) && z.token3pa == nil {
 		return errors.New("NoPasswordProvided")
 	}
 	parId := ""
 	if z.parentId != nil {
 		parId = *z.parentId
 	}
-	res, err := z.client.LoginUser(z.ctx, &zbprotocol.AuthenticateUser{
-		ParentId:   parId,
-		Handle:     *z.loginId,
-		Password:   *z.password,
-		Nonce:      z.nonceMaker.Get(),
-		Credential: MakeEmptyCredentials(),
-	})
+	var luReq *zbprotocol.AuthenticateUser
+	if z.source3pa != nil {
+		luReq = &zbprotocol.AuthenticateUser{
+			ParentId:             parId,
+			Handle:               *z.loginId,
+			Nonce:                z.nonceMaker.Get(),
+			Credential:           MakeEmptyCredentials(),
+			LoginType:            zbprotocol.SubuserLoginType_THIRD_PARTY,
+			ThirdPartySource:     *z.source3pa,
+			ThirdPartyCredential: *z.token3pa,
+		}
+	} else {
+		luReq = &zbprotocol.AuthenticateUser{
+			ParentId:   parId,
+			Handle:     *z.loginId,
+			Password:   *z.password,
+			Nonce:      z.nonceMaker.Get(),
+			Credential: MakeEmptyCredentials(),
+			LoginType:  zbprotocol.SubuserLoginType_HANDLE,
+		}
+	}
+	res, err := z.client.LoginUser(z.ctx, luReq)
 	if err != nil {
 		return err
 	} else {
 		j := res.GetJwtToken()
+		//log.Printf("GOT JWT TOKEN - %s\n", j)
 		if len(j) > 0 {
 			z.jwtToken = &j
 			z.userId = res.GetId()
@@ -227,24 +254,24 @@ func (z *ZetabaseClient) ListTables() ([]string, error) {
 	if !z.checkReady() {
 		return nil, errors.New("NotReady")
 	}
-	
+
 	tableNames := []string{}
 
 	nonce := z.nonceMaker.Get()
 	poc := z.getCredential(nonce, nil)
 
 	res, err := z.client.ListTables(z.ctx, &zbprotocol.ListTablesRequest{
-		Id:            z.userId,
-		Nonce:         nonce,
-		TableOwnerId:  z.userId,
-		Credential:    poc,
+		Id:           z.userId,
+		Nonce:        nonce,
+		TableOwnerId: z.userId,
+		Credential:   poc,
 	})
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
-	for _, table := range(res.GetTableDefinitions()) {
+
+	for _, table := range res.GetTableDefinitions() {
 		tableNames = append(tableNames, table.GetTableId())
 	}
 	return tableNames, nil
@@ -330,7 +357,7 @@ func (z *ZetabaseClient) Get(tableOwnerId, tableId string, keys []string) *getPa
 func (z *ZetabaseClient) StringDump() string {
 	pid := ""
 	if z.parentId != nil {
-		pid =  *z.parentId
+		pid = *z.parentId
 	}
 	return fmt.Sprintf("ZB client for %s (parent %s)", z.userId, pid)
 }
@@ -521,15 +548,15 @@ func (z *ZetabaseClient) ModifySubIdentity(subUserId string, newHandle *string, 
 	nonce := z.nonceMaker.Get()
 	poc := z.getCredential(nonce, nil)
 	_, err := z.client.ModifySubIdentity(z.ctx, &zbprotocol.SubIdentityModify{
-		Id:                   z.userId,
-		SubId:                subUserId,
-		NewName:              name,
-		NewEmail:             email,
-		NewMobile:            mobile,
-		NewPassword:          pass,
-		NewPubKey:            pubkey,
-		Nonce:                nonce,
-		Credential:           poc,
+		Id:          z.userId,
+		SubId:       subUserId,
+		NewName:     name,
+		NewEmail:    email,
+		NewMobile:   mobile,
+		NewPassword: pass,
+		NewPubKey:   pubkey,
+		Nonce:       nonce,
+		Credential:  poc,
 	})
 	return err
 }
@@ -583,7 +610,7 @@ func (z *ZetabaseClient) QueryData(tbldOwnerId, tblId string, qry SubQueryConver
 	}
 
 	keys := []string{}
-	for k := range(data) {
+	for k := range data {
 		keys = append(keys, k)
 	}
 
@@ -721,10 +748,10 @@ func (z *ZetabaseClient) GrpcClient() zbprotocol.ZetabaseProviderClient {
 //	}
 //}
 
-
 const (
 	DoSaveCertificates = false
 )
+
 // Connect to Zetabase with the provided credentials.
 func (z *ZetabaseClient) Connect() error {
 	if z.insecure {

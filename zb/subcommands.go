@@ -1134,6 +1134,23 @@ var cmdManage = &cobra.Command{
 			log.Printf("Webhook address: https://zetabase.io/api/webhooks/%s/%s\n", tblOwner, tbl)
 
 		} else if task == AdminTaskTestClient {
+			// Testing Google 3pa
+			log.Printf("Testing 3pa...\n")
+			parentId := "8a12658b-8c5c-4394-bd60-7e0cfedc9007"
+			tblId := "test3pa1"
+			client := zetabase.NewZetabaseClient("")
+			client.SetInsecure()
+			client.SetServerAddr("localhost:9991")
+			client.SetParent(parentId)
+			tok := "eyJhbGciOiJSUzI1NiIsImtpZCI6IjNmMzMyYjNlOWI5MjhiZmU1MWJjZjRmOGRhNTQzY2M0YmQ5ZDQ3MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiMzg2Njc4OTY0NjMyLXRiYzc2bXRzMWhjMGFram5mbGw1bWlzbm1ndTRzOGRjLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMzg2Njc4OTY0NjMyLXRiYzc2bXRzMWhjMGFram5mbGw1bWlzbm1ndTRzOGRjLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTA0OTU0MTg5OTI0NjI5ODQyMDM3IiwiaGQiOiJyb3V0ZWZpcmUuaW8iLCJlbWFpbCI6Imphc29uQHJvdXRlZmlyZS5pbyIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiNmI2U0RFUXMtVHFkTEJ4T2I1SWRnZyIsIm5hbWUiOiJKYXNvbiBWaWN0b3IiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1ORUxpdC13WHdOay9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQS9BTVp1dWNrQWJhMjZhTlJCdGRWZVI2SW5YTzAxQ1FEUWRnL3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJKYXNvbiIsImZhbWlseV9uYW1lIjoiVmljdG9yIiwibG9jYWxlIjoiZW4iLCJpYXQiOjE2MDAxMjY0MzEsImV4cCI6MTYwMDEzMDAzMSwianRpIjoiNWVhZjMwYmI5M2YwNTE1NGJmODVkMjEyYzBmMDZmOTMxMzkxZGNjMiJ9.UraRHw5Gm-EDB0vIRHCni1pVg1Oz0dNQb7VGsNVzzIiGl4IIegCf-36JFBwELM0U5jyKnuZN2EqRj5F78M_o6KGD0Lv2LnWKws6JN6FnUwVde_-0iLTy_KZKakocfTz7gzbVSKYI6VVOVeCuq8_OE0YHHNw5VwwJV4fciQYkRPyjZFdoJs5U5PqdiMiJa4pbxXjE2hpwmZwtzodLd6k3l0XDBUyWsUAnIrAWMAk1UMLjFWcSjuz4VX3iwYTmLdHSRyARddNSek-GilWuZndLB9LS2Y3voAn2tdd7I1eE5zfPwK1ls0SktWWhyuJ435fqZmptnfuFLwiO3MI5RcKLtw"
+			client.SetThirdPartyAuthToken("jason@routefire.io", tok, "google")
+			err := client.Connect()
+			if err != nil {
+				panic(err)
+			}
+			keys, err := client.ListKeys(parentId, tblId).KeysAll()
+			log.Printf("Got keys using 3PA: %v\n", keys)
+		} else if task == AdminTaskTestClient {
 			// This is the tweets test corresponding to the JS example
 			tblId := "tweetstest2"
 			parentId := "a68d5254-206c-4782-bb10-eb33037e0d4e"
