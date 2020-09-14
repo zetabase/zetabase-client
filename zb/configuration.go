@@ -12,7 +12,6 @@ import (
 )
 
 const (
-
 	ConfigKeyUserEmail     = "user.email"
 	ConfigKeyUserMobile    = "user.mobile"
 	ConfigKeyUserName      = "user.name"
@@ -22,12 +21,13 @@ const (
 	ConfigKeyAdminPassword = "admin.pass"
 
 	ConfigKeySubIdSignupCode = "admin.signupcode"
-	ConfigKeyGroupId = "admin.groupid"
+	ConfigKeyGroupId         = "admin.groupid"
 
 	AdminTaskNewUser       = "newuser"
 	AdminTaskNewSubUser    = "newsubuser"
+	AdminTaskRandomBytes   = "randombytes"
 	AdminTaskTestingGround = "test"
-	AdminTaskListSubUsers = "listusers"
+	AdminTaskListSubUsers  = "listusers"
 	AdminTaskTestClient    = "client"
 	AdminTaskGetWebhook    = "webhook"
 
@@ -87,7 +87,7 @@ var (
 	verbose             = false
 	parentUid           = ""
 	putOverwrite        = false
-	exportDataMode        = ""
+	exportDataMode      = ""
 )
 
 type IdentityDefinition struct {
@@ -174,5 +174,3 @@ func isWindows() bool {
 	}
 	return false
 }
-
-

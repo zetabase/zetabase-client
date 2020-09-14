@@ -1004,6 +1004,11 @@ var cmdManage = &cobra.Command{
 				}
 				Logf("Success!\n\nResult: saved identity to file: %s\n > ID %s", idFn, id)
 			}
+		} else if task == AdminTaskRandomBytes {
+			token := make([]byte, 512)
+			rand.Read(token)
+			s := base64.StdEncoding.EncodeToString(token)
+			fmt.Printf("%s\n", s)
 		} else if task == AdminTaskNewSubUser {
 			parentId := viper.GetString(ConfigKeyParentUid)
 			if len(parentId) < 1 {

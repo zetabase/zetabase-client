@@ -98,6 +98,11 @@ enum SystemObjectType {
     KEY = 2;
 }
 
+enum SubuserLoginType {
+    HANDLE = 0;
+    THIRD_PARTY = 1;
+}
+
 // UTILITY
 
 message EcdsaSignature {
@@ -166,6 +171,9 @@ message AuthenticateUser {
     string password = 3;
     int64 nonce = 4;
     ProofOfCredential credential = 5;
+    SubuserLoginType loginType = 6;
+    string thirdPartyCredential = 7;
+    string thirdPartySource = 8;
 }
 
 message AuthenticateUserResponse {
