@@ -101,6 +101,7 @@ enum SystemObjectType {
 enum SubuserLoginType {
     HANDLE = 0;
     THIRD_PARTY = 1;
+    TOKEN_REFRESH = 2;
 }
 
 // UTILITY
@@ -180,6 +181,7 @@ message AuthenticateUser {
 message AuthenticateUserResponse {
     string id = 1;
     string jwtToken = 2;
+    string refreshToken = 3;
 }
 
 // IDENTITY MANAGEMENT
