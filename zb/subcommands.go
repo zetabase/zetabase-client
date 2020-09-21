@@ -1133,6 +1133,43 @@ var cmdManage = &cobra.Command{
 
 			log.Printf("Webhook address: https://zetabase.io/api/webhooks/%s/%s\n", tblOwner, tbl)
 
+		} else if task == "refresh" {
+			log.Printf("Testing refresh tokens...\n")
+			client := zetabase.NewZetabaseClient("")
+			client.SetInsecure()
+			client.SetServerAddr("localhost:9991")
+			client.SetIdPassword("jasonpy1", "jasonpy1")
+			err := client.Connect()
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Connected...")
+			}
+			_, v, _ := client.CheckVersion()
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Version: %v\n", v)
+			}
+			t1, _ := client.JwtTokens()
+			log.Printf("Access token t0: %s\n", t1)
+			time.Sleep(3 * time.Second)
+
+			err = client.RefreshToken()
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Refreshed!\n")
+			}
+
+			t1a, _ := client.JwtTokens()
+			log.Printf("Access token t1: %s\n", t1a)
+
+			if t1 == t1a {
+				log.Printf("access tokens are the same")
+			} else {
+				log.Printf("access tokens are NOT the same")
+			}
 		} else if task == AdminTaskTestClient {
 			// Testing Google 3pa
 			log.Printf("Testing 3pa...\n")

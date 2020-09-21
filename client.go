@@ -45,6 +45,7 @@ type ZetabaseClient struct {
 	conn         *grpc.ClientConn
 	client       zbprotocol.ZetabaseProviderClient
 	jwtToken     *string
+	jwtRefreshToken     *string
 	debugMode    bool
 	ctx          context.Context
 	maxItemSize  int64
@@ -69,6 +70,7 @@ func NewZetabaseClient(uid string) *ZetabaseClient {
 		conn:         nil,
 		client:       nil,
 		jwtToken:     nil,
+		jwtRefreshToken:     nil,
 		ctx:          context.Background(),
 		maxItemSize:  int64(1000),
 	}
@@ -90,6 +92,7 @@ func NewZetabaseUserClient(parentId string) *ZetabaseClient {
 		conn:         nil,
 		client:       nil,
 		jwtToken:     nil,
+		jwtRefreshToken:     nil,
 		ctx:          context.Background(),
 		maxItemSize:  int64(1000),
 	}
@@ -234,9 +237,45 @@ func (z *ZetabaseClient) authLoginJwt() error {
 		if len(j) > 0 {
 			z.jwtToken = &j
 			z.userId = res.GetId()
+			r := res.GetRefreshToken()
+			z.jwtRefreshToken = &r
 		}
 	}
 	return nil
+}
+
+func (z *ZetabaseClient) JwtTokens() (string, string) {
+	var s1 , s2 string
+	if z.jwtRefreshToken != nil {
+		s2 = *z.jwtRefreshToken
+	}
+	if z.jwtToken != nil {
+		s1 = *z.jwtToken
+	}
+	return s1, s2
+}
+
+func (z *ZetabaseClient) RefreshToken() error {
+	if z.jwtRefreshToken == nil {
+		return errors.New("NoRefreshToken")
+	}
+	//log.Printf("Using ref token: %s\n", *z.jwtRefreshToken)
+	luReq := &zbprotocol.AuthenticateUser{
+		Handle:     z.userId,
+		Nonce:      z.nonceMaker.Get(),
+		Credential: MakeCredentialJwt(*z.jwtRefreshToken),
+		LoginType:  zbprotocol.SubuserLoginType_TOKEN_REFRESH,
+	}
+	res, err := z.client.LoginUser(z.ctx, luReq)
+	if err != nil {
+		return err
+	} else {
+		j, r := res.GetJwtToken(), res.GetRefreshToken()
+		//log.Printf("j = %s \nr = %s\n", j, r)
+		z.jwtToken = &j
+		z.jwtRefreshToken = &r
+		return nil
+	}
 }
 
 func (z *ZetabaseClient) getCredential(nonce int64, xBytes []byte) *zbprotocol.ProofOfCredential {
