@@ -88,16 +88,29 @@ func toFieldConstraint(uid, tblId string, cs *PermConstraint) *zbprotocol.Permis
 		fTyp = zbprotocol.FieldConstraintValueType_RANDOM
 		fVal = ""
 	}
-	
-	return &zbprotocol.PermissionConstraint{
-		ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
-		FieldConstraint: &zbprotocol.FieldConstraint{
-			ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
-			FieldKey:       cs.Field,
-			ValueType:      fTyp,
-			RequiredValue:  fVal,
-		},
+
+	if cs.Field == "@key" {
+		return &zbprotocol.PermissionConstraint{
+			ConstraintType: zbprotocol.PermissionConstraintType_KEY_PATTERN,
+			KeyConstraint: &zbprotocol.KeyPatternConstraint{
+				ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
+				ValueType:      fTyp,
+				RequiredValue:  fVal,
+			},
+		}
+	} else {
+		return &zbprotocol.PermissionConstraint{
+			ConstraintType: zbprotocol.PermissionConstraintType_FIELD,
+			FieldConstraint: &zbprotocol.FieldConstraint{
+				ConstraintType: zbprotocol.FieldConstraintType_EQUALS_VALUE,
+				FieldKey:       cs.Field,
+				ValueType:      fTyp,
+				RequiredValue:  fVal,
+			},
+		}
+
 	}
+	
 }
 
 func toFieldConstraints(uid, tblId string, cs []*PermConstraint) []*zbprotocol.PermissionConstraint {
