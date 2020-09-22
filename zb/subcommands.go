@@ -1133,6 +1133,35 @@ var cmdManage = &cobra.Command{
 
 			log.Printf("Webhook address: https://zetabase.io/api/webhooks/%s/%s\n", tblOwner, tbl)
 
+		} else if task == "testnu" {
+			client := zetabase.NewZetabaseClient("")
+			//client.SetInsecure()
+			//client.SetServerAddr("localhost:9991")
+			//client.SetIdPassword("jasonpy1", "jasonpy1")
+			err := client.Connect()
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Connected...")
+			}
+			s := "programmatic001"
+			res, err := client.NewRootUser(s, s + "@test.com", "+12035613094", s, nil)
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Result: %v\n", *res)
+			}
+		} else if task == "testnuc" {
+			client := zetabase.NewZetabaseClient("")
+			err := client.Connect()
+			if err != nil {
+				panic(err)
+			} else {
+				log.Printf("Connected...")
+			}
+			s := "50555aa9-a664-49b0-8767-66d92944eebc"
+			t := "2943"
+			client.ConfirmNewRootUser(s, t)
 		} else if task == "refresh" {
 			log.Printf("Testing refresh tokens...\n")
 			client := zetabase.NewZetabaseClient("")

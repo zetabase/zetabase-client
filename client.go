@@ -444,7 +444,7 @@ func (z *ZetabaseClient) Id() string {
 	return z.userId
 }
 
-// Confirm new subuser givern subuserId and verification code
+// Confirm new subuser given subuser ID and verification code
 func (z *ZetabaseClient) ConfirmNewSubUser(subuserId, verificationCode string) error {
 	_, err := z.client.ConfirmNewIdentity(z.ctx, &zbprotocol.NewIdentityConfirm{
 		Id:               subuserId,
@@ -455,6 +455,65 @@ func (z *ZetabaseClient) ConfirmNewSubUser(subuserId, verificationCode string) e
 		return err
 	}
 	return nil
+}
+
+// Confirm new given user ID and verification code
+func (z *ZetabaseClient) ConfirmNewRootUser(userId, verificationCode string) error {
+	_, err := z.client.ConfirmNewIdentity(z.ctx, &zbprotocol.NewIdentityConfirm{
+		Id:               userId,
+		VerificationCode: verificationCode,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Information on newly created root users
+type NewRootUserInfo struct {
+	Id             string `json:"uid"`
+	PubKeyEncoded  string `json:"pub_key"`
+	PrivKeyEncoded string `json:"priv_key"`
+}
+
+// Create a new root user with the given attributes
+func (z *ZetabaseClient) NewRootUser(handle, email, mobile, password string, pubKey0 *ecdsa.PublicKey) (*NewRootUserInfo, error) {
+	var privKey *ecdsa.PrivateKey
+	pubKey := pubKey0
+	if pubKey0 == nil {
+		priv, pub := GenerateKeyPair()
+		pubKey = pub
+		privKey = priv
+	}
+
+	pkBs, err := EncodeEcdsaPublicKey(pubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := z.client.RegisterNewIdentity(z.ctx, &zbprotocol.NewIdentityRequest{
+		Name:          handle,
+		Email:         email,
+		Mobile:        mobile,
+		AdminPassword: password,
+		PubKeyEncoded: string(pkBs),
+	})
+	if err != nil {
+		return nil, err
+	}
+	nui := &NewRootUserInfo{
+		Id:             res.Id,
+		PubKeyEncoded:  string(pkBs),
+		PrivKeyEncoded: "",
+	}
+	if privKey != nil {
+		bs, err := EncodeEcdsaPrivateKey(privKey)
+		if err != nil {
+			return nil, err
+		}
+		nui.PrivKeyEncoded = string(bs)
+	}
+	return nui, nil
 }
 
 // Create a new subuser with the given attributes
