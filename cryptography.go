@@ -33,15 +33,23 @@ func signingBytes(uid string, nonce int64) []byte {
 	return []byte(sbs)
 }
 
+// TODO - jv - NEED TO GET THIS SYNCD ACROSS ALL CODEBASES ETC.
 func permissionSigningBytes(entry zbprotocol.PermissionsEntry) []byte {
 	b1 := []byte{byte(entry.AudienceType), byte(entry.Level)}
 	b2 := []byte(entry.Id + entry.TableId + entry.AudienceId)
 	var b3 []byte
 	for _, p := range entry.Constraints {
-		b3 = append(b3, byte(p.FieldConstraint.ConstraintType))
-		b3 = append(b3, byte(p.FieldConstraint.ValueType))
-		s := []byte(p.FieldConstraint.FieldKey + p.FieldConstraint.RequiredValue)
-		b3 = append(b3, s...)
+		if p.KeyConstraint != nil {
+			b3 = append(b3, byte(p.KeyConstraint.ConstraintType))
+			b3 = append(b3, byte(p.KeyConstraint.ValueType))
+			s := []byte(p.KeyConstraint.RequiredValue)
+			b3 = append(b3, s...)
+		} else {
+			b3 = append(b3, byte(p.FieldConstraint.ConstraintType))
+			b3 = append(b3, byte(p.FieldConstraint.ValueType))
+			s := []byte(p.FieldConstraint.FieldKey + p.FieldConstraint.RequiredValue)
+			b3 = append(b3, s...)
+		}
 	}
 	var bs []byte
 	bs = b1
