@@ -46,6 +46,21 @@ func stringifyPermEntry(p *zbprotocol.PermissionsEntry) string {
 			}
 			opDesc := " = "
 			cs = c.GetFieldConstraint().GetFieldKey() + opDesc + reqVal
+		} else {
+			reqVal := ""
+			switch c.GetKeyConstraint().GetValueType() {
+			case zbprotocol.FieldConstraintValueType_UID:
+				reqVal = "@uid"
+			case zbprotocol.FieldConstraintValueType_TIMESTAMP:
+				reqVal = "@time"
+			case zbprotocol.FieldConstraintValueType_NATURAL_ORDER:
+				reqVal = "@order"
+			case zbprotocol.FieldConstraintValueType_RANDOM:
+				reqVal = "@random"
+			case zbprotocol.FieldConstraintValueType_CONSTANT:
+				reqVal = reqVal // no change
+			}
+			cs = "@key = " + c.GetKeyConstraint().GetRequiredPrefix() + reqVal + c.GetKeyConstraint().GetRequiredSuffix()
 		}
 		cstrs = append(cstrs, cs)
 	}
